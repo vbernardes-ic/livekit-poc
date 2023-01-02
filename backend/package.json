@@ -1,0 +1,19 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon app.js",
+    "start-wss": "nodemon wss.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "livekit-client": "^1.6.0",
+    "livekit-server-sdk": "^1.1.0",
+    "nodemon": "^2.0.20",
+    "ws": "^8.11.0"
+  }
+}

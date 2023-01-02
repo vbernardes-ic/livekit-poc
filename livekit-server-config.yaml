@@ -1,0 +1,19 @@
+port: 7880
+rtc:
+    udp_port: 7882
+    tcp_port: 7881
+    use_external_ip: false
+room:
+    auto_create: true
+redis:
+  address: localhost:6379
+keys:
+    devkey: secret
+logging:
+    json: true
+    level: debug
+    pion_level: debug
+webhook:
+    api_key: devkey
+    urls:
+        - "http://localhost:3001/webhooks"
