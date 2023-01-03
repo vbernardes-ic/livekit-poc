@@ -1,21 +1,27 @@
 # Livekit POC using Egress for track recording
 
-## Install Livekit
+## Using docker-compose for livekit-server, egress and redis:
+
+`$ docker compose up`
+
+## Installing manually:
+
+### Install Livekit
 `$ brew install livekit`
 
-## Run Livekit
+### Run Livekit
 `$ livekit-server --config /path/to/project/livekit-server-config.yaml --dev`
 
-## Install redis
+### Install redis
 `$ brew install redis`
 
-## Configure redis
+### Configure redis
 
 See https://docs.livekit.io/oss/deployment/egress/#running-locally
 
 _redis.conf file may be at /opt/homebrew/etc/ instead of /usr/local/etc/_
 
-## Run Egress
+### Run Egress
 ```
 docker run --rm \
     -e EGRESS_CONFIG_FILE=/out/config.yaml \
@@ -27,7 +33,7 @@ docker run --rm \
 
 Inside example and backend folder, run `$ yarn/npm install`
 
-## Run frontend and backend
+## Run frontend and backend (on each respective folder)
 
 `$ yarn/npm start`
 

@@ -6,7 +6,7 @@ rtc:
 room:
     auto_create: true
 redis:
-  address: localhost:6379
+  address: redis-svc:6379
 keys:
     devkey: secret
 logging:
@@ -16,4 +16,4 @@ logging:
 webhook:
     api_key: devkey
     urls:
-        - "http://localhost:3001/webhooks"
+        - "http://192.168.65.2:3001/webhooks"
