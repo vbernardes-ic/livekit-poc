@@ -16,4 +16,4 @@ logging:
 webhook:
     api_key: devkey
     urls:
-        - "http://192.168.65.2:3001/webhooks"
+        - "http://backend-server:3001/webhooks"

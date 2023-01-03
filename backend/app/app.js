@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 
 
 
-const livekitHost = "ws://localhost:7880"
+const livekitHost = process.env.LIVEKIT_URL || "ws://localhost:7880"
 const svc = new RoomServiceClient(livekitHost, "devkey", "secret")
 const receiver = new WebhookReceiver("devkey", "secret");
 const egressClient = new EgressClient(
@@ -55,7 +55,7 @@ app.post('/webhooks', bodyParser.raw({type: "application/webhook+json"}), async 
     console.log("======track_published=====")
     const info = await egressClient.startTrackEgress(
       'my-room',
-      'ws://192.168.65.2:8080',
+      process.env.WEBSOCKET_SERVER_URL || 'ws://192.168.65.2:8080',
       event.track.sid,
     );
     console.log("====info=====", info)

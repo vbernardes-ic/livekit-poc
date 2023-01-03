@@ -5,8 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "start": "nodemon app.js",
-    "start-wss": "nodemon wss.js"
+    "start": "nodemon -w ./app ./app/app.js",
+    "start-wss": "nodemon -w ./websocket-server ./websocket-server/wss.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
