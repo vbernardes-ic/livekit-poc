@@ -1,6 +1,6 @@
 # Livekit POC using Egress for track recording
 
-## Using docker-compose for livekit-server, egress and redis:
+## Using docker-compose:
 
 `$ docker compose up`
 
