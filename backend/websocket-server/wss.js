@@ -1,27 +1,69 @@
 import WebSocket, { WebSocketServer } from "ws";
+import fs from "fs";
+
 const wss = new WebSocketServer({ port: 8080 });
 console.log("wss.js")
 
 wss.on("connection", function connection(ws) {
     console.log("connection");
 
-    // Connect to rev.ai websocket api
-    // send binary data
-    // const rev_ai_conn = new WebSocket('ws://www.rev.ai/path');
-    // rev_ai_conn.on('open', function open() {
-    //     console.log("Connection with rev.ai estabilished")
-    // });
+    // Array to store the data messages
+    let dataMessages = [];
 
     // Messages sent from Egress
     ws.on("message", function message(data) {
-        console.log("received: %s", data);
-
-
-        // rev_ai_conn.send(array);
+        // Store the data message in the array
+        dataMessages.push(data);
     });
 
-    // Messages sent from rev.ai
-    // rev_ai_conn.on('message', function message(data) {
-    //     console.log('received: %s', data);
-    // });
+    ws.on("close", () => {
+        // Concatenate the data messages
+        const audioData = Buffer.concat(dataMessages);
+
+        // Parse the data to extract the necessary information for the WAV file header and metadata
+        const audioLength = audioData.length; // length of the audio data in bytes
+        const sampleRate = 96000; // sample rate in Hz
+        const channels = 1; // number of channels (1 for mono, 2 for stereo)
+        const bitsPerSample = 16; // bits per sample (8 or 16)
+
+        // Calculate the number of bytes per sample
+        const bytesPerSample = bitsPerSample / 8;
+
+        // Calculate the number of samples in the audio data
+        const numSamples = audioLength / bytesPerSample;
+
+        // Calculate the audio duration in seconds
+        const duration = numSamples / sampleRate;
+
+        // Calculate the number of bytes in the header
+        const headerLength = 44;
+
+        // Create the WAV file header
+        const header = Buffer.alloc(headerLength);
+        header.write("RIFF"); // Chunk ID
+        header.writeUInt32LE(audioLength + headerLength - 8, 4); // Chunk Size
+        header.write("WAVE", 8); // Format
+        header.write("fmt ", 12); // Subchunk 1 ID
+        header.writeUInt32LE(16, 16); // Subchunk 1 Size
+        header.writeUInt16LE(1, 20); // Audio Format (1 for PCM)
+        header.writeUInt16LE(channels, 22); // Number of Channels
+        header.writeUInt32LE(sampleRate, 24); // Sample Rate
+        header.writeUInt32LE(sampleRate * channels * bytesPerSample, 28); // Byte Rate
+        header.writeUInt16LE(channels * bytesPerSample, 32); // Block Align
+        header.writeUInt16LE(bitsPerSample, 34); // Bits per Sample
+        header.write("data", 36); // Subchunk 2 ID
+        header.writeUInt32LE(audioLength, 40); // Subchunk 2 Size
+
+        // Create the WAV file by concatenating the header and the audio data
+        const wavData = Buffer.concat([header, audioData]);
+
+        // Save the WAV file
+        fs.writeFile("sound.wav", wavData, (err) => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log("WAV file saved");
+            }
+        });
+    });
 });
