@@ -59,28 +59,48 @@ wss.on("connection", function connection(ws) {
 
     // Counter for the number of times the timer is triggered
     let counter = 0;
-    // Save the data to a file every 3 seconds
+    // Save the data to a file every n seconds
+    let delay = 5 * 1000;
     setInterval(() => {
         if (ws.readyState === ws.OPEN) {
             if (typeof dataMessages !== []) {
                 const audioData = Buffer.concat(dataMessages);
                 const header = createWavHeader(audioData);
                 const wavData = Buffer.concat([header, audioData]);
-                const filename = "sound_" + counter + ".wav";
-                counter++;
-                fs.writeFile(filename, wavData, (err) => {
-                    if (err) {
-                        console.error(err);
-                    } else {
-                        console.log("WAV file saved");
+//                const filename = "sound_" + counter + ".wav";
+//                counter++;
+//                fs.writeFile(filename, wavData, (err) => {
+//                    if (err) {
+//                        console.error(err);
+//                    } else {
+//                        console.log("WAV file saved");
+//                    }
+//                });
+//                console.log("Saving audio snippet %s", filename)
+
+                // Send file for transcription
+                fetch("http://host.docker.internal:5000/transcribe", {
+                    method: "POST",
+                    body: wavData,
+                    headers: {
+                        "Content-Type": "application/octet-stream",
+                        "Content-Length": wavData.length
                     }
+                })
+                .then((response) => {
+                    console.log(`Status: ${response.status}`);
+                    console.log(`Headers: ${JSON.stringify(response.headers)}`);
+                    return response.text();
+                })
+                .then((text) => {
+                    console.log(`Body: ${text}`);
                 });
-                console.log("Saving audio snippet %s", filename)
-                // Clean audio buffer
+
+            // Clean audio buffer
                 dataMessages = [];
             }
         }
-    }, 3000); // 3 seconds
+    }, delay);
 
     ws.on("close", () => {
         // Concatenate the data messages
