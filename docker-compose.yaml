@@ -10,20 +10,30 @@ services:
       - backend:/app/node_modules/
     environment:
       - LIVEKIT_URL=ws://livekit:7880
-      - WEBSOCKET_SERVER_URL=ws://websocket-server:8080
+#      - WEBSOCKET_SERVER_URL=ws://websocket-server:8080
+      - WEBSOCKET_SERVER_URL=ws://websocket-server-py:8765
     depends_on:
       - livekit
-  websocket-server:
-    image: node:18-alpine
-    command: sh -c "yarn install && yarn start-wss"
+  websocket-server-py:
+    build: ./backend/websocket-server-py/
     ports:
-      - 8080
+      - 8765:8765
     working_dir: /app
     volumes:
-      - ./backend/:/app
-      - backend:/app/node_modules/
+      - ./backend/websocket-server-py/:/app
     environment:
       - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/transcribe
+#  websocket-server:
+#    image: node:18-alpine
+#    command: sh -c "yarn install && yarn start-wss"
+#    ports:
+#      - 8080
+#    working_dir: /app
+#    volumes:
+#      - ./backend/:/app
+#      - backend:/app/node_modules/
+#    environment:
+#      - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/transcribe
   transcription-server:
     image: python:3.10
     command: sh -c "
