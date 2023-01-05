@@ -22,6 +22,19 @@ services:
     volumes:
       - ./backend/:/app
       - backend:/app/node_modules/
+  transcription-service:
+    image: python:3.10
+    command: sh -c "
+      pip install setuptools &&
+      pip install --upgrade pip &&  
+      pip install flask && 
+      pip install git+https://github.com/openai/whisper.git && 
+      python my_whisper_service.py"
+    ports:
+      - 5050:5050
+    working_dir: /app
+    volumes:
+      - ./backend/transcription-service:/app
   frontend:
     image: node:18-alpine
     command: sh -c "yarn install && yarn start"
