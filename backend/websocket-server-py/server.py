@@ -3,47 +3,76 @@
 import asyncio
 import aiohttp
 import websockets
+import requests
+import os
 import logging
-logging.basicConfig(level=logging.INFO)
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Counter for the number of times the timer is triggered
 counter = 0
+last_processed_msg = 0  # index for data_messages
+
+TRANSCRIPTION_SERVER_URL = os.getenv('TRANSCRIPTION_SERVER_URL')
 
 
 async def process_partial_audio(data_messages):
-    if data_messages:
-        wav_data = format_audio_data(data_messages)
+    global last_processed_msg
+    logger.debug('Entering process_partial_audio')
+    logger.debug(f'Last processed message index: {last_processed_msg}')
 
-        # Save audio snippet locally
-        global counter  # sorry
-        save_audio_file(data_messages, suffix=counter)
-        counter += 1
+    msgs_to_process = data_messages[last_processed_msg:]
+    wav_data = format_audio_data(msgs_to_process)
 
-        # Send file for transcription
-        async with aiohttp.ClientSession() as session:
-            # async with session.post("http://host.docker.internal:5000/transcribe", data=wav_data, headers={
-            async with session.post("http://localhost:5000/transcribe", data=wav_data, headers={
-                "Content-Type": "application/octet-stream",
-                "Content-Length": len(wav_data)
-            }) as response:
-                logging.info(f"Status: {response.status}")
-                logging.info(f"Headers: {response.headers}")
-                text = await response.text()
-                logging.info(f"Body: {text}")
+    # Save audio snippet locally
+    global counter  # sorry
+    save_audio_file(msgs_to_process, suffix=counter)
+    counter += 1
 
-        # # Clean audio buffer
-        # data_messages.clear()
+    # Send file for transcription
+    # transcription = await get_transcription(wav_data)
+
+    # Update last processed index
+    last_processed_msg = len(data_messages)
+    logger.debug(f'Updated last processed message index to: {last_processed_msg}')
+
+
+async def get_transcription(wav_data):
+    logger.debug('Initiating transcription request...')
+    # Send file for transcription
+    async with aiohttp.ClientSession() as session:
+        async with session.post(TRANSCRIPTION_SERVER_URL, data=wav_data, headers={
+            "Content-Type": "application/octet-stream",
+            # "Content-Length": len(wav_data)
+        }) as response:
+            logger.info(f"Status: {response.status}")
+            logger.info(f"Headers: {response.headers}")
+            text = await response.text()
+            logger.info(f"Body: {text}")
+            return text
 
 
 async def timer(data_messages, delay=5):
     while True:
         await asyncio.sleep(delay)
-        logging.info('Timer triggered.')
+        logger.info('Timer triggered.')
+        await heartbeat_trans_service()
         await process_partial_audio(data_messages)
 
 
+async def heartbeat_trans_service():
+    ping = requests.get('http://transcription-server:5050/heartbeat')
+    if ping.text == 'Ok':
+        logger.info('Heartbeat >>> Transcription service is up.')
+    else:
+        logger.info('Heartbeat >>> Could not reach transcription service.')
+
+
 async def audio_handler(websocket):
+    logger.info(f'Connection initiated, with ID {websocket.id}')
+
     # Array to store the data messages
     data_messages = []
     data_messages_whole_audio = []
@@ -56,16 +85,13 @@ async def audio_handler(websocket):
             data_messages.append(message)
             data_messages_whole_audio.append(message)
 
-            raw_data_len = consume(message)
-            logging.debug(f">>> Received message with {raw_data_len} bytes")
     except websockets.ConnectionClosed:
         timer_task.cancel()
-        logging.info(f"Closing connection from client.")
+        logger.info(f"Closing connection from client.")
+        wav_data = format_audio_data(data_messages_whole_audio)
+        transcription = await get_transcription(wav_data)
+        logger.info(transcription)
         save_audio_file(data_messages_whole_audio)
-
-
-def consume(message):
-    return len(message)
 
 
 def format_audio_data(messages):
@@ -80,7 +106,7 @@ def save_audio_file(audio_buffer, suffix=None):
     filename = f"sound_{suffix}.wav" if suffix else "sound.wav"
     with open(filename, "wb") as f:
         f.write(wav_data)
-    logging.info(f"File {filename} saved.")
+    logger.info(f"File {filename} saved.")
 
 
 def create_wav_header(audio_data):
@@ -123,7 +149,7 @@ def create_wav_header(audio_data):
 
 
 async def main():
-    logging.info('Server up')
+    logger.info('Server up, version 81222223')
     async with websockets.serve(audio_handler, "0.0.0.0", 8765):
         await asyncio.Future()  # run forever
 
