@@ -1,6 +1,8 @@
 import whisper
 import json
 from tempfile import NamedTemporaryFile
+import logging
+logging.basicConfig(level=logging.INFO)
 
 from flask import Flask, request
 
@@ -14,6 +16,7 @@ model = whisper.load_model('tiny')
 def heartbeat():
     return "Ok"
 
+
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     audio_data = request.get_data()
@@ -21,10 +24,10 @@ def transcribe():
     with NamedTemporaryFile() as f:
         f.write(audio_data)
         transcript = model.transcribe(f.name)
-        print(transcript)
+        logging.info(transcript)
         return json.dumps({'transcription': transcript})
 
 
 if __name__ == '__main__':
-    print("Running...")
-    app.run(host="0.0.0.0",port=5050)
+    logging.info("Running...")
+    app.run(host="0.0.0.0", port=5050)
