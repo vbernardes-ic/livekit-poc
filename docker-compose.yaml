@@ -10,7 +10,6 @@ services:
       - backend:/app/node_modules/
     environment:
       - LIVEKIT_URL=ws://livekit:7880
-#      - WEBSOCKET_SERVER_URL=ws://websocket-server:8080
       - WEBSOCKET_SERVER_URL=ws://websocket-server-py:8765
     depends_on:
       - livekit
@@ -32,8 +31,6 @@ services:
 #    volumes:
 #      - ./backend/:/app
 #      - backend:/app/node_modules/
-#    environment:
-#      - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/transcribe
   transcription-server:
     build: ./backend/transcription-service/
     ports:
