@@ -21,6 +21,7 @@ def transcribe():
     with NamedTemporaryFile() as f:
         f.write(audio_data)
         transcript = model.transcribe(f.name)
+        print(transcript)
         return json.dumps({'transcription': transcript})
 
 

@@ -22,9 +22,14 @@ services:
     volumes:
       - ./backend/:/app
       - backend:/app/node_modules/
-  transcription-service:
+    environment:
+      - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/transcribe
+  transcription-server:
     image: python:3.10
     command: sh -c "
+      apt-get -y update &&
+      apt-get -y upgrade &&
+      apt-get install -y ffmpeg &&
       pip install setuptools &&
       pip install --upgrade pip &&  
       pip install flask && 
