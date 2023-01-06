@@ -27,7 +27,7 @@ async def process_partial_audio(data_messages, conn_id, counter, last_processed_
     counter += 1
 
     # Send file for transcription
-    transcription = await get_transcription(wav_data)
+    # transcription = await get_transcription(wav_data)
 
     # Update last processed index
     last_processed_msg = len(data_messages)
@@ -38,11 +38,10 @@ async def process_partial_audio(data_messages, conn_id, counter, last_processed_
 
 async def get_transcription(wav_data):
     logger.debug('Initiating transcription request...')
-    # Send file for transcription
+    # Send data for transcription
     async with aiohttp.ClientSession() as session:
         async with session.post(TRANSCRIPTION_SERVER_URL, data=wav_data, headers={
             "Content-Type": "application/octet-stream",
-            "Content-Length": len(wav_data)
         }) as response:
             logger.info(f"Status: {response.status}")
             logger.info(f"Headers: {response.headers}")
