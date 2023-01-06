@@ -78,8 +78,8 @@ wss.on("connection", function connection(ws) {
 //                });
 //                console.log("Saving audio snippet %s", filename)
 
-                // Send file for transcription
-                fetch("http://host.docker.internal:5000/transcribe", {
+// Send file for transcription
+                fetch(process.env.TRANSCRIPTION_SERVER_URL, {
                     method: "POST",
                     body: wavData,
                     headers: {
