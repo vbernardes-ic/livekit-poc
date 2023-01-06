@@ -112,7 +112,7 @@ def format_audio_data(messages):
 async def save_audio_file(audio_buffer, conn_id, suffix=None):
     id_suffix = str(conn_id)[-4:]
     wav_data = format_audio_data(audio_buffer)
-    filename = f"sound_{id_suffix}_{suffix}.wav" if suffix else f"sound_{id_suffix}.wav"
+    filename = f"sound_{id_suffix}_{suffix}.wav" if suffix is not None else f"sound_{id_suffix}.wav"
     with open(filename, "wb") as f:
         f.write(wav_data)
     logger.info(f"File {filename} saved.")
