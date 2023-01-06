@@ -72,26 +72,35 @@ async def heartbeat_trans_service():
 
 async def audio_handler(websocket):
     logger.info(f'Connection initiated, with ID {websocket.id}')
+    logger.debug(f'Connection {websocket.id} >>> Headers: {websocket.request_headers}')
 
     # Array to store the data messages
     data_messages = []
     data_messages_whole_audio = []
 
-    timer_task = asyncio.create_task(timer(data_messages))
+    # timer_task = asyncio.create_task(timer(data_messages))
 
     try:
         async for message in websocket:
+            logger.debug(f'Received message type >>> {type(message)}')
             # Store the data message in the array
-            data_messages.append(message)
-            data_messages_whole_audio.append(message)
+            if isinstance(message, bytes):
+                data_messages.append(message)
+                data_messages_whole_audio.append(message)
+            else:
+                assert isinstance(message, str)
+                logger.info(f'Received string message: {message}')
 
     except websockets.ConnectionClosed:
-        timer_task.cancel()
+        # timer_task.cancel()
         logger.info(f"Closing connection from client.")
         wav_data = format_audio_data(data_messages_whole_audio)
         transcription = await get_transcription(wav_data)
         logger.info(transcription)
-        save_audio_file(data_messages_whole_audio)
+        save_audio_file(data_messages_whole_audio, conn_id=websocket.id)
+
+        # debug
+        logger.debug(f'Connection {websocket.id} >>> Num of messages received: {len(data_messages_whole_audio)}')
 
 
 def format_audio_data(messages):
@@ -101,9 +110,11 @@ def format_audio_data(messages):
     return wav_data
 
 
-def save_audio_file(audio_buffer, suffix=None):
+def save_audio_file(audio_buffer, conn_id=None, suffix=None):
+    if conn_id:
+        id_suffix = str(conn_id)[-4:]
     wav_data = format_audio_data(audio_buffer)
-    filename = f"sound_{suffix}.wav" if suffix else "sound.wav"
+    filename = f"sound_{id_suffix}_{suffix}.wav" if suffix else f"sound_{id_suffix}.wav"
     with open(filename, "wb") as f:
         f.write(wav_data)
     logger.info(f"File {filename} saved.")
@@ -149,7 +160,7 @@ def create_wav_header(audio_data):
 
 
 async def main():
-    logger.info('Server up, version 81222223')
+    logger.info('Server up, version 2')
     async with websockets.serve(audio_handler, "0.0.0.0", 8765):
         await asyncio.Future()  # run forever
 
