@@ -13,15 +13,17 @@ services:
       - WEBSOCKET_SERVER_URL=ws://websocket-server:8080
     depends_on:
       - livekit
-  websocket-server:
-    image: node:18-alpine
-    command: sh -c "yarn install && yarn start-wss"
-    ports:
-      - 8080
-    working_dir: /app
-    volumes:
-      - ./backend/:/app
-      - backend:/app/node_modules/
+  # websocket-server:
+  #   image: node:18-alpine
+  #   command: sh -c "yarn install && yarn start-wss"
+  #   ports:
+  #     - 8080
+  #   working_dir: /app
+  #   volumes:
+  #     - ./backend/:/app
+  #     - backend:/app/node_modules/
+  #   environment:
+  #     - LIVEKIT_URL=ws://livekit:7880
   frontend:
     image: node:18-alpine
     command: sh -c "yarn install && yarn start"
@@ -41,19 +43,19 @@ services:
     command: --config /etc/livekit.yaml
     restart: unless-stopped
     ports:
-      - 7880:7880
+      - 7880:7880/udp
     volumes:
       - ./livekit-server.yaml:/etc/livekit.yaml
     depends_on:
       - redis-svc
-  livekit-egress:
-    image: livekit/egress
-    environment:
-      - EGRESS_CONFIG_FILE=/out/config.yaml
-    volumes:
-      - ./livekit-egress/config.yaml:/out/config.yaml
-    depends_on:
-      - redis-svc
+  # livekit-egress:
+  #   image: livekit/egress
+  #   environment:
+  #     - EGRESS_CONFIG_FILE=/out/config.yaml
+  #   volumes:
+  #     - ./livekit-egress/config.yaml:/out/config.yaml
+  #   depends_on:
+  #     - redis-svc
 
 
 volumes:
