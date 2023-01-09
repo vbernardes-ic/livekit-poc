@@ -1,3 +1,4 @@
+import { RoomServiceClient } from "livekit-server-sdk";
 import WebSocket, { WebSocketServer } from "ws";
 import fs from "fs";
 

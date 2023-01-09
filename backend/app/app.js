@@ -1,12 +1,12 @@
 import express from "express";
-import { AccessToken, EgressClient, RoomServiceClient, WebhookReceiver } from "livekit-server-sdk";
+import { AccessToken, DataPacket_Kind, EgressClient, RoomServiceClient, WebhookReceiver } from "livekit-server-sdk";
 import cors from "cors";
 import bodyParser from "body-parser";
 
 
 
 const livekitHost = process.env.LIVEKIT_URL || "ws://localhost:7880"
-const svc = new RoomServiceClient(livekitHost, "devkey", "secret")
+const roomServiceClient = new RoomServiceClient(livekitHost, "devkey", "secret")
 const receiver = new WebhookReceiver("devkey", "secret");
 const egressClient = new EgressClient(
   livekitHost,
@@ -39,7 +39,7 @@ app.get("/get-token", (req, res) => {
     const token = at.toJwt();
     console.log("access token", token);
 
-    svc.listRooms().then((rooms) => {
+    roomServiceClient.listRooms().then((rooms) => {
       console.log('existing rooms', rooms);
     });
 
@@ -51,14 +51,26 @@ app.post('/webhooks', bodyParser.raw({type: "application/webhook+json"}), async 
   // event is a WebhookEvent object
   const event = receiver.receive(req.body, req.get('Authorization'))
 
+  console.log("========WEBHOOK EVENT=========")
+  console.log(event)
+
   if (event.event === "participant_joined") {
-    // EG_... always joins with the actual participant in order to record the tracks 
+    // EG_... always joins with the actual participant in order to record the tracks
     console.log("====PARTICIPANT=====", event.participant.identity)
+
+    // to send data to front-end:
+    if (event.room.numParticipants > 1) {
+      const strData = JSON.stringify({type: "transcription", data: "Some transcription"})
+      const encoder = new TextEncoder()
+      const data = encoder.encode(strData);
+
+      roomServiceClient.sendData("my-room", data, DataPacket_Kind.RELIABLE)
+    }
   }
- 
+
   if (event.event === "track_published") {
-    // TrackTypes AUDIO 0 VIDEO 1... https://docs.livekit.io/server-sdk-js/enums/TrackType.html 
-    if (event.track.type === 0){ 
+    // TrackTypes AUDIO 0 VIDEO 1... https://docs.livekit.io/server-sdk-js/enums/TrackType.html
+    if (event.track.type === 0){
       const info = await egressClient.startTrackEgress(
         'my-room',
         process.env.WEBSOCKET_SERVER_URL || 'ws://192.168.65.2:8080',
