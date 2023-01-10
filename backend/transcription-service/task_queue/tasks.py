@@ -19,10 +19,9 @@ def hello():
 
 
 @app.task(track_started=True)
-def transcribe(audio_data):
+def transcribe(audio_data, b64=False):
     with NamedTemporaryFile() as f:
-        bin_data = b64decode(audio_data.encode())
-        logger.debug(f'Temporary filename: {f.name}')
+        bin_data = b64decode(audio_data.encode()) if b64 else audio_data
         f.write(bin_data)
         transcript = model.transcribe(f.name, verbose=True)
         logger.info(transcript)
