@@ -1,15 +1,16 @@
-import whisper
-import json
-from tempfile import NamedTemporaryFile
 import logging
-logging.basicConfig(level=logging.INFO)
+from time import sleep
+from base64 import b64encode
 
 from flask import Flask, request
 
-app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-# load model and processor
-model = whisper.load_model('tiny')
+from task_queue import tasks
+
+app = Flask(__name__)
 
 
 @app.route('/heartbeat', methods=['GET'])
@@ -20,12 +21,14 @@ def heartbeat():
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     audio_data = request.get_data()
-
-    with NamedTemporaryFile() as f:
-        f.write(audio_data)
-        transcript = model.transcribe(f.name)
-        logging.info(transcript)
-        return json.dumps({'transcription': transcript})
+    b64_audio_data = b64encode(audio_data).decode()
+    transcript_task = tasks.transcribe.delay(b64_audio_data)
+    while not transcript_task.ready():  # TODO make async logic
+        logger.debug(f'Task status: {transcript_task.state}')
+        sleep(1)
+    assert transcript_task.ready()
+    transcript = transcript_task.result
+    return transcript
 
 
 if __name__ == '__main__':

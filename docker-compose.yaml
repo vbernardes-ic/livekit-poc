@@ -22,6 +22,8 @@ services:
       - ./backend/websocket-server-py/:/app
     environment:
       - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/transcribe
+    depends_on:
+      - transcription-server
 #  websocket-server:
 #    image: node:18-alpine
 #    command: sh -c "yarn install && yarn start-wss"
@@ -38,6 +40,10 @@ services:
     working_dir: /app
     volumes:
       - ./backend/transcription-service:/app
+    environment:
+      - REDIS_URL=redis://redis-svc:6379
+    depends_on:
+      - redis-svc
   frontend:
     image: node:18-alpine
     command: sh -c "yarn install && yarn start"

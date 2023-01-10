@@ -27,7 +27,7 @@ async def process_partial_audio(data_messages, conn_id, counter, last_processed_
     counter += 1
 
     # Send file for transcription
-    # transcription = await get_transcription(wav_data)
+    transcription = await get_transcription(wav_data)
 
     # Update last processed index
     last_processed_msg = len(data_messages)
@@ -69,7 +69,7 @@ async def heartbeat_trans_service():
 
 async def audio_handler(websocket):
     logger.info(f'Connection initiated, with ID {websocket.id}')
-    logger.debug(f'Connection {websocket.id} >>> Headers: {websocket.request_headers}')
+    logger.debug(f'Connection {websocket.id} >>> Request Headers:\n{websocket.request_headers}')
 
     counter = 0  # Counter for the number of times the timer is triggered
     last_processed_msg = 0  # Index for data_messages
