@@ -6,12 +6,11 @@ RUN apt-get -y update && \
     pip install --upgrade pip && \
     pip install flask && \
     pip install git+https://github.com/openai/whisper.git
-RUN pip install -U "celery[redis]" && \
-    ln -s /run/shm /dev/shm  # workaround for celery
-EXPOSE 5050
-#COPY *.py /app/
-#ADD task_queue /app/task_queue
+RUN pip install -U "celery[redis]" flower && \
+    ln -s /run/shm /dev/shm  # workaround for celery \
+EXPOSE 5050 5555
 WORKDIR /app
 RUN touch celery.log  # workaround for celery
 CMD celery -A task_queue.celery worker -l INFO -f celery.log & \
+    celery -A task_queue.celery flower & \
     python my_whisper_service.py

@@ -37,6 +37,7 @@ services:
     build: ./backend/transcription-service/
     ports:
       - 5050:5050
+      - 5555:5555
     working_dir: /app
     volumes:
       - ./backend/transcription-service:/app
