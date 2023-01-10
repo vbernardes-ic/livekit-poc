@@ -21,7 +21,7 @@ services:
     volumes:
       - ./backend/websocket-server-py/:/app
     environment:
-      - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/transcribe
+      - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/
     depends_on:
       - transcription-server
 #  websocket-server:
