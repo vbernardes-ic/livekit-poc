@@ -24,17 +24,17 @@ services:
       - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/
     depends_on:
       - transcription-server
-    # websocket-server:
-    #   image: node:18-alpine
-    #   command: sh -c "yarn install && yarn start-wss"
-    #   ports:
-    #     - 8080
-    #   working_dir: /app
-    #   volumes:
-    #     - ./backend/:/app
-    #     - backend:/app/node_modules/
-    #   environment:
-    #     - LIVEKIT_URL=ws://livekit:7880
+#  websocket-server:
+#    image: node:18-alpine
+#    command: sh -c "yarn install && yarn start-wss"
+#    ports:
+#     - 8080
+#    working_dir: /app
+#    volumes:
+#     - ./backend/:/app
+#     - backend:/app/node_modules/
+#    environment:
+#     - LIVEKIT_URL=ws://livekit:7880
   transcription-server:
     build: ./backend/transcription-service/
     ports:
