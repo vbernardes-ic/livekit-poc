@@ -11,6 +11,7 @@ RUN pip install -U "celery[redis]" flower && \
 EXPOSE 5050 5555
 WORKDIR /app
 RUN touch celery.log  # workaround for celery
-CMD celery -A task_queue.celery worker -l INFO -f celery.log & \
+# Need to run Celery single-threaded (-P solo) for easier PyTorch integration
+CMD celery -A task_queue.celery worker -P solo -l INFO -f celery.log &\
     celery -A task_queue.celery flower & \
     python my_whisper_service.py

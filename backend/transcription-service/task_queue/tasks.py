@@ -23,6 +23,6 @@ def transcribe(audio_data, b64=False):
     with NamedTemporaryFile() as f:
         bin_data = b64decode(audio_data.encode()) if b64 else audio_data
         f.write(bin_data)
-        transcript = model.transcribe(f.name, verbose=True)
+        transcript = model.transcribe(f.name)
         logger.info(transcript)
         return json.dumps({'transcription': transcript})
