@@ -22,6 +22,7 @@ services:
       - ./backend/websocket-server-py/:/app
     environment:
       - TRANSCRIPTION_SERVER_URL=http://transcription-server:5050/
+      - LIVEKIT_URL=ws://livekit:7880
     depends_on:
       - transcription-server
 #  websocket-server:
@@ -66,7 +67,8 @@ services:
     command: --config /etc/livekit.yaml
     restart: unless-stopped
     ports:
-      - 7880:7880/udp
+#      - 7880:7880/udp
+      - 7880:7880
     volumes:
       - ./livekit-server.yaml:/etc/livekit.yaml
     depends_on:
