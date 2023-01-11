@@ -51,14 +51,20 @@ app.post('/webhooks', bodyParser.raw({type: "application/webhook+json"}), async 
   // event is a WebhookEvent object
   const event = receiver.receive(req.body, req.get('Authorization'))
 
+  if (event.event === "participant_joined") {
+    // EG_... always joins with the actual participant in order to record the tracks 
+    console.log("====PARTICIPANT=====", event.participant.identity)
+  }
+ 
   if (event.event === "track_published") {
-    console.log("======track_published=====")
-    const info = await egressClient.startTrackEgress(
-      'my-room',
-      process.env.WEBSOCKET_SERVER_URL || 'ws://192.168.65.2:8080',
-      event.track.sid,
-    );
-    console.log("====info=====", info)
+    // TrackTypes AUDIO 0 VIDEO 1... https://docs.livekit.io/server-sdk-js/enums/TrackType.html 
+    if (event.track.type === 0){ 
+      const info = await egressClient.startTrackEgress(
+        'my-room',
+        process.env.WEBSOCKET_SERVER_URL || 'ws://192.168.65.2:8080',
+        event.track.sid,
+      );
+    }
   }
 })
 
