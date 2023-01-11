@@ -77,7 +77,6 @@ async def audio_handler(websocket):
 
     # Array to store the data messages
     data_messages = []
-    data_messages_whole_audio = []
 
     timer_task = asyncio.create_task(timer(data_messages, websocket.id, counter, last_processed_msg))
 
@@ -86,7 +85,6 @@ async def audio_handler(websocket):
             # Store the data message in the array
             if isinstance(message, bytes):
                 data_messages.append(message)
-                data_messages_whole_audio.append(message)
             else:
                 assert isinstance(message, str)
                 logger.info(f'Received string message: {message}')
@@ -94,13 +92,10 @@ async def audio_handler(websocket):
     except websockets.ConnectionClosed:
         timer_task.cancel()
         logger.info(f"Closing connection from client.")
-        wav_data = format_audio_data(data_messages_whole_audio)
+        wav_data = format_audio_data(data_messages)
         transcription = await get_transcription(wav_data)
         logger.info(transcription)
-        await save_audio_file(data_messages_whole_audio, conn_id=websocket.id)
-
-        # debug
-        logger.debug(f'Connection {websocket.id} >>> Num of messages received: {len(data_messages_whole_audio)}')
+        await save_audio_file(data_messages, conn_id=websocket.id)
 
 
 def format_audio_data(messages):
