@@ -27,7 +27,7 @@ async def process_partial_audio(data_messages, conn_id, counter, last_processed_
     counter += 1
 
     # Send file for transcription
-    transcription = await get_transcription(wav_data)
+    await start_transcription(wav_data)
 
     # Update last processed index
     last_processed_msg = len(data_messages)
@@ -36,7 +36,7 @@ async def process_partial_audio(data_messages, conn_id, counter, last_processed_
     return counter, last_processed_msg
 
 
-async def get_transcription(wav_data, async_=True):
+async def start_transcription(wav_data, async_=True):
     logger.debug(f'Initiating {"ASYNC" if async_ else "SYNC"} transcription request...')
     # Send data for transcription
     req_url = TRANSCRIPTION_SERVER_URL+'transcribe_async' if async_ else TRANSCRIPTION_SERVER_URL+'transcribe'
@@ -46,9 +46,6 @@ async def get_transcription(wav_data, async_=True):
         }) as response:
             logger.info(f"Status: {response.status}")
             logger.info(f"Headers: {response.headers}")
-            text = await response.text()
-            logger.info(f"Body: {text}")
-            return text
 
 
 async def timer(data_messages, conn_id, counter, last_processed_msg, delay=5):
@@ -93,8 +90,7 @@ async def audio_handler(websocket):
         timer_task.cancel()
         logger.info(f"Closing connection from client.")
         wav_data = format_audio_data(data_messages)
-        transcription = await get_transcription(wav_data)
-        logger.info(transcription)
+        await start_transcription(wav_data)
         await save_audio_file(data_messages, conn_id=websocket.id)
 
 
