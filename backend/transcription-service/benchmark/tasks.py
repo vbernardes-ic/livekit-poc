@@ -3,7 +3,7 @@ import json
 import whisper
 import logging
 import time
-from celery.signals import task_prerun, task_postrun
+from celery.signals import task_prerun, task_postrun, worker_ready
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,6 +37,13 @@ def transcribe(audio_file, model_name, chunk_size=None, counter=None):
     logger.info(transcript)
 
     return json.dumps({'transcription': transcript})
+
+
+@worker_ready.connect
+def load_model(sender=None, conf=None, **kwargs):
+    global models
+    models = {name: whisper.load_model(name) for name in model_names}
+    logger.info(f'Loaded models: {" ".join(model_names)}')
 
 
 @task_prerun.connect
