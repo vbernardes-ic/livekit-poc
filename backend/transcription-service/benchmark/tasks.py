@@ -12,7 +12,7 @@ logger.setLevel(logging.DEBUG)
 # Set up transcription models
 
 model_names = ['tiny.en', 'base.en', 'small.en']
-models = {name: whisper.load_model(name) for name in model_names}
+models = {}
 
 # To get task execution times
 tasks_exec_time = {}
@@ -59,7 +59,7 @@ def task_postrun_handler(task_id, task, **extras):
     elapsed_time = end - tasks_exec_time.pop(task_id)
 
     model_name = extras['args'][1]
-    chunk_size = extras['kwargs']['chunk_size']
+    chunk_size = extras['kwargs'].get('chunk_size')
 
     # output performance
     if chunk_size is not None:
