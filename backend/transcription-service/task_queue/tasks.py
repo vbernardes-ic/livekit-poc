@@ -5,14 +5,15 @@ import logging
 from base64 import b64decode
 from .celery import app
 import time
-from celery.signals import task_prerun, task_postrun
+from celery.signals import task_prerun, task_postrun, worker_ready
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # Set up transcription model
-model = whisper.load_model('tiny.en')
+model_name = 'base.en'
+model = None
 
 # To get task execution times
 tasks_exec_time = {}
@@ -32,6 +33,13 @@ def transcribe(audio_data, b64=False):
         logger.info(transcript)
 
         return json.dumps({'transcription': transcript})
+
+
+@worker_ready.connect
+def load_model(sender=None, conf=None, **kwargs):
+    global model
+    model = whisper.load_model(model_name)
+    logger.info(f'Loaded model: {model_name}')
 
 
 @task_prerun.connect
